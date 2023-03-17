@@ -1,7 +1,8 @@
-﻿using AutoMapper;
+using AutoMapper;
 using IntroducciónAEDCore.DTOs;
 using IntroducciónAEDCore.Entidades;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace IntroducciónAEDCore.Controllers
 {
@@ -19,13 +20,48 @@ namespace IntroducciónAEDCore.Controllers
         }
 
         [HttpPost]
-        public async Task<ActionResult> Post(ActorCreacionDTO actorCreacion)
+        public async Task<Actor> Post(ActorCreacionDTO actorCreacion)
         {
             var actor = mapper.Map<Actor>(actorCreacion);
             context.Add(actor);
             await context.SaveChangesAsync();
 
-            return Ok();
+            return actor;
+        }
+
+        [HttpGet]
+        public async Task<List<Actor>> Get()
+        {
+            var actor = await context.Actores.ToListAsync();
+
+            return actor;
+        }
+
+        [HttpPut]
+        public async Task<Actor> Put(int actorId, ActorCreacionDTO actorCreacion)
+        {
+            var actor = mapper.Map<Actor>(actorCreacion);
+            actor.Id = actorId;
+
+            var modifyActor = context.Actores.Where(x => x.Id == actorId);
+            modifyActor.FirstOrDefault().Nombre = actor.Nombre;
+            modifyActor.FirstOrDefault().Fortuna = actor.Fortuna;
+            modifyActor.FirstOrDefault().FechaNacimiento = actor.FechaNacimiento;
+
+            await context.SaveChangesAsync();
+
+            return actor;
+        }
+
+        [HttpDelete]
+        public async Task<string> Delete(int actorId)
+        {
+            var deleteActor = context.Actores.Where(x => x.Id == actorId).FirstOrDefault();
+            context.Actores.Remove(deleteActor);
+
+            await context.SaveChangesAsync();
+
+            return "El actor fue borrado con exito";
         }
     }
 }
